@@ -40,8 +40,7 @@ class URLService:
 
 
 # Connect to our local Redis container
-r = redis.Redis(host=getenv('HOST'), port=int(getenv('PORT')),
-                db=int(getenv('db')), decode_responses=True)
+r = redis.from_url(getenv("REDIS_URL"))
 url_repository = URLRepository(r)
 url_service = URLService(url_repository)
 
