@@ -59,7 +59,7 @@ class URLService:
 
 
 # Connect to our local Redis container
-r = redis.from_url(getenv("REDIS_URL"))
+r = redis.from_url(getenv("REDIS_URL"), decode_responses=True)
 url_repository = RedisURLRepository(r)
 url_service = URLService(url_repository)
 
