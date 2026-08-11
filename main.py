@@ -73,7 +73,7 @@ class URLRequest(BaseModel):
 @app.post("/shorten")
 def shorten_url(request: URLRequest):
     short_code = url_service.shorten(request.long_url)
-    return {"short_url": f"http://localhost:8000/{short_code}"}
+    return {"short_url": f"https://my-tinyurl.onrender.com/{short_code}"}
 
 
 @app.get("/{short_code}")
