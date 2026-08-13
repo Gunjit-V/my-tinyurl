@@ -12,7 +12,8 @@ from abc import ABC, abstractmethod
 
 load_dotenv()
 
-app = FastAPI(title="MinURL API", description="Minimalist & Fast URL Shortener")
+app = FastAPI(title="MinURL API",
+              description="Minimalist & Fast URL Shortener")
 
 # Enable CORS for frontend flexibility
 app.add_middleware(
@@ -40,9 +41,8 @@ class AbstractURLRepository(ABC):
 
 class RedisURLRepository(AbstractURLRepository):
 
-    def __init__(self, redis_client_primary, redis_client_replica):
+    def __init__(self, redis_client_primary):
         self.redis_client_primary = redis_client_primary
-        self.redis_client_replica = redis_client_replica
 
     def get_next_id(self):
         return self.redis_client_primary.incr("url_counter")
@@ -51,7 +51,7 @@ class RedisURLRepository(AbstractURLRepository):
         self.redis_client_primary.set(short_code, long_url)
 
     def get_url(self, short_code):
-        return self.redis_client_replica.get(short_code)
+        return self.redis_client_primary.get(short_code)
 
 
 class InMemoryURLRepository(AbstractURLRepository):
@@ -90,21 +90,20 @@ class URLService:
 
 # Initialize repository with Redis or fallback to In-Memory
 primary_url = getenv("REDIS_URL_PRIMARY")
-replica_url = getenv("REDIS_URL_REPLICA")
-
 try:
-    if primary_url and replica_url:
-        r_primary = redis.from_url(primary_url, decode_responses=True, socket_connect_timeout=1)
-        r_replica = redis.from_url(replica_url, decode_responses=True, socket_connect_timeout=1)
+    if primary_url:
+        r_primary = redis.from_url(
+            primary_url, decode_responses=True, socket_connect_timeout=1)
         # Test connection
         r_primary.ping()
-        url_repository = RedisURLRepository(r_primary, r_replica)
+        url_repository = RedisURLRepository(r_primary)
         print("Connected to Redis clusters.")
     else:
         print("Redis URLs not provided. Falling back to InMemoryURLRepository.")
         url_repository = InMemoryURLRepository()
 except Exception as e:
-    print(f"Could not connect to Redis ({e}). Using InMemoryURLRepository fallback.")
+    print(
+        f"Could not connect to Redis ({e}). Using InMemoryURLRepository fallback.")
     url_repository = InMemoryURLRepository()
 
 url_service = URLService(url_repository)
@@ -146,4 +145,3 @@ def redirect_url(short_code: str):
         return RedirectResponse(long_url)
     else:
         return {"error": "Short URL not found"}
-
