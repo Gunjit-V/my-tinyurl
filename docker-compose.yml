@@ -1,0 +1,9 @@
+services:
+  web:
+    build: .
+    expose:
+      - "8000"
+    deploy:
+      replicas: 3
+    environment:
+      - REDIS_URL=redis://redis-primary:6379
