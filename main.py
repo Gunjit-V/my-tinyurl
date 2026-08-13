@@ -128,6 +128,16 @@ def serve_frontend():
     return {"message": "MinURL API is running. Place index.html in static/"}
 
 
+@app.get("/api/status")
+def get_api_status():
+    is_redis = isinstance(url_repository, RedisURLRepository)
+    return {
+        "status": "online",
+        "storage": "Redis" if is_redis else "In-Memory",
+        "is_redis": is_redis
+    }
+
+
 @app.post("/shorten")
 def shorten_url(url_data: URLRequest, request: Request):
     short_code = url_service.shorten(url_data.long_url)
